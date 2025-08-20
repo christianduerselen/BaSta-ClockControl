@@ -10,12 +10,12 @@ const int Baudrate = 57600;
 void setup()
 {
   // Configure the relevant pins as inputs
-  pinMode(GameClockRunningSwitchPin, INPUT);
-  pinMode(HornButtonPin, INPUT);
-  pinMode(PrecisionTimeStatusSwitchPin, INPUT);
-  pinMode(ShotClock24SecondResetButtonPin, INPUT);
-  pinMode(ShotClock14SecondResetButtonPin, INPUT);
-  pinMode(ShotClockRunningSwitchPin, INPUT);
+  pinMode(GameClockRunningSwitchPin, INPUT_PULLUP);
+  pinMode(HornButtonPin, INPUT_PULLUP);
+  pinMode(PrecisionTimeStatusSwitchPin, INPUT_PULLUP);
+  pinMode(ShotClock24SecondResetButtonPin, INPUT_PULLUP);
+  pinMode(ShotClock14SecondResetButtonPin, INPUT_PULLUP);
+  pinMode(ShotClockRunningSwitchPin, INPUT_PULLUP);
 
   // Configure serial send (through RX/TX)
   Serial.begin(Baudrate);
@@ -23,12 +23,12 @@ void setup()
 
 void loop()
 {
-  bool gameClockRunningSwitchState = digitalRead(GameClockRunningSwitchPin);
-  bool hornButtonState = digitalRead(HornButtonPin);
-  bool precisionTimeStatusSwitchState = digitalRead(PrecisionTimeStatusSwitchPin);
-  bool shotClock24SecondResetButtonState = digitalRead(ShotClock24SecondResetButtonPin);
-  bool shotClock14SecondResetButtonState = digitalRead(ShotClock14SecondResetButtonPin);
-  bool shotClockRunningSwitchState = digitalRead(ShotClockRunningSwitchPin);
+  bool gameClockRunningSwitchState = !digitalRead(GameClockRunningSwitchPin);
+  bool hornButtonState = !digitalRead(HornButtonPin);
+  bool precisionTimeStatusSwitchState = !digitalRead(PrecisionTimeStatusSwitchPin);
+  bool shotClock24SecondResetButtonState = !digitalRead(ShotClock24SecondResetButtonPin);
+  bool shotClock14SecondResetButtonState = !digitalRead(ShotClock14SecondResetButtonPin);
+  bool shotClockRunningSwitchState = !digitalRead(ShotClockRunningSwitchPin);
 
   Serial.write(0x0D);
   Serial.write(0x30 + gameClockRunningSwitchState ? 0x01 : 0x00 + hornButtonState ? 0x02 : 0x00 + precisionTimeStatusSwitchState ? 0x04 : 0x00);
