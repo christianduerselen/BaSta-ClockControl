@@ -5,7 +5,7 @@ const int ShotClock24SecondResetButtonPin = 8;
 const int ShotClock14SecondResetButtonPin = 9;
 const int ShotClockRunningSwitchPin = 10;
 
-const int Baudrate = 57600;
+volatile byte state = LOW;
 
 void setup()
 {
@@ -17,12 +17,30 @@ void setup()
   pinMode(ShotClock14SecondResetButtonPin, INPUT_PULLUP);
   pinMode(ShotClockRunningSwitchPin, INPUT_PULLUP);
 
+  attachInterrupt(digitalPinToInterrupt(GameClockRunningSwitchPin), change, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(HornButtonPin), change, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(PrecisionTimeStatusSwitchPin), change, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ShotClock24SecondResetButtonPin), change, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ShotClock14SecondResetButtonPin), change, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ShotClockRunningSwitchPin), change, CHANGE);
+
   // Configure serial send (through RX/TX)
-  Serial.begin(Baudrate);
+  Serial.begin(57600);
+  while (!Serial) {;}
+}
+
+void change()
+{
+  state = HIGH;
 }
 
 void loop()
 {
+  if (state == LOW)
+    return;
+
+  state = LOW;
+
   bool gameClockRunningSwitchState = !digitalRead(GameClockRunningSwitchPin);
   bool hornButtonState = !digitalRead(HornButtonPin);
   bool precisionTimeStatusSwitchState = !digitalRead(PrecisionTimeStatusSwitchPin);
@@ -31,8 +49,25 @@ void loop()
   bool shotClockRunningSwitchState = !digitalRead(ShotClockRunningSwitchPin);
 
   Serial.write(0x0D);
-  Serial.write(0x30 + gameClockRunningSwitchState ? 0x01 : 0x00 + hornButtonState ? 0x02 : 0x00 + precisionTimeStatusSwitchState ? 0x04 : 0x00);
-  Serial.write(0x40 + shotClock24SecondResetButtonState ? 0x01 : 0x00 + shotClock14SecondResetButtonState ? 0x02 : 0x00 + shotClockRunningSwitchState ? 0x04 : 0x00);
+  
+  byte value1 = 0x30;
+  if (gameClockRunningSwitchState)
+    value1 += 0x01;
+  if (hornButtonState)
+    value1 += 0x02;
+  if (precisionTimeStatusSwitchState)
+    value1 += 0x04;
+  Serial.write(value1);
+
+  byte value2 = 0x40;
+  if (shotClock24SecondResetButtonState)
+    value2 += 0x01;
+  if (shotClock14SecondResetButtonState)
+    value2 += 0x02;
+  if (shotClockRunningSwitchState)
+    value2 += 0x04;
+  Serial.write(value2);
+
   Serial.write(0x50);
-  Serial.write(0x60);
+  Serial.write(0x60);  
 }
